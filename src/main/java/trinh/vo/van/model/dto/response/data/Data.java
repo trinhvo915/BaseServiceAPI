@@ -11,7 +11,8 @@ public class Data {
 
     private Integer status;
 
-    private Object data;
+    private Boolean isSuccess;
 
+    private Object results;
 
 }

@@ -1,8 +1,10 @@
 package trinh.vo.van.service.user;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import trinh.vo.van.constant.EmailConstants;
 import trinh.vo.van.model.dto.response.user.UserResponses;
 import trinh.vo.van.model.entity.user.User;
@@ -11,6 +13,11 @@ import trinh.vo.van.repository.UserRepository;
 import trinh.vo.van.service.email.IEmailService;
 import trinh.vo.van.utils.ThreadUtil;
 
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +29,11 @@ public class UserServiceImpl implements UserService{
 
     private final UserRepository userRepository;
     private final IEmailService emailService;
-
+    private final EntityManager entityManager;
     @Override
     public Boolean existsByUsername(String username) {
         try {
-            Boolean user = userRepository.existsByUsername(username);
+            Boolean user = userRepository.existsByUserName(username);
             return Objects.nonNull(user) ? user : false;
         }catch (Exception exception){
             return false;
@@ -69,6 +76,31 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public List<UserResponses> getUsers(UserFilter userFilter) {
+
+        return null;
+    }
+
+    @Override
+    public UserResponses getByEmailOrUsername(String search) {
+        if(! StringUtils.hasText(search)){
+            return null;
+        }
+
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<User> query = criteriaBuilder.createQuery(User.class);
+        Root<User> userRoot = query.from(User.class);
+
+        Predicate conditionEmail = criteriaBuilder.equal(userRoot.get("email"), search);
+        Predicate conditionUserName = criteriaBuilder.equal(userRoot.get("userName"), search);
+        Predicate predicate = criteriaBuilder.or(conditionEmail, conditionUserName);
+
+        query.where(predicate);
+
+        List<User> users = entityManager.createQuery(query).getResultList();
+
+        if(CollectionUtils.isNotEmpty(users)){
+            return UserResponses.fromUser(users.get(0));
+        }
 
         return null;
     }

@@ -57,10 +57,11 @@ public class AuthController {
         if(!(isExistUsername || isExistEmail)) {
             Data data = Data.builder()
                     .message(AuthConstants.USERNAME_OR_PASWORD_NO_EXIST)
+                    .isSuccess(false)
                     .status(HttpStatus.BAD_REQUEST.value())
                     .build();
 
-            return new ResponseEntity(DataResponse.builder().success(false).data(data), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity(DataResponse.builder().data(data), HttpStatus.BAD_REQUEST);
         }
 
         Authentication authentication = authenticationManager.authenticate(
@@ -98,7 +99,7 @@ public class AuthController {
 
         // Creating user's account
         User user = User.builder()
-                .username(userSignUp.getUsername())
+                .userName(userSignUp.getUsername())
                 .password(passwordEncoder.encode(userSignUp.getPassword()))
                 .fullName(userSignUp.getFullName())
                 .email(userSignUp.getEmail())
@@ -110,7 +111,7 @@ public class AuthController {
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/users/{username}")
-                .buildAndExpand(result.getUsername()).toUri();
+                .buildAndExpand(result.getUserName()).toUri();
 
         return ResponseEntity.created(location).body(new ApiResponseData(true, "User registered successfully"));
     }

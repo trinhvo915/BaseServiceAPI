@@ -15,4 +15,6 @@ public interface UserService {
     User save(User user);
 
     List<UserResponses> getUsers(UserFilter userFilter);
+
+    UserResponses getByEmailOrUsername(String search);
 }

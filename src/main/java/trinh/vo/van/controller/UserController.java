@@ -8,28 +8,28 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import trinh.vo.van.constant.ResponseMessageConstant;
 import trinh.vo.van.model.dto.request.user.SortByUser;
+import trinh.vo.van.model.dto.response.data.Data;
+import trinh.vo.van.model.dto.response.data.DataResponse;
 import trinh.vo.van.model.dto.response.user.UserResponses;
-import trinh.vo.van.model.entity.user.User;
 import trinh.vo.van.model.filter.RoleEnums;
 import trinh.vo.van.model.filter.UserFilter;
-import trinh.vo.van.repository.UserRepository;
 import trinh.vo.van.service.user.UserService;
 
-import javax.validation.Valid;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @RestController
 public class UserController {
 
-    private final UserRepository userRepository;
     private final UserService userService;
 
     @Operation(description = "Get User")
@@ -37,11 +37,17 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = ResponseMessageConstant.RETRIEVED_SUCCESSFULLY),
             @ApiResponse(responseCode = "401", description = ResponseMessageConstant.NOT_ENOUGH_PRIVILEGE, content = @Content(schema = @Schema(hidden = true)))
     })
-    @GetMapping("/api/user")
-    public ResponseEntity<List<User>> getUser(
+    @GetMapping("/api/my-user")
+    public ResponseEntity<DataResponse> getUser(
             @RequestParam(required = false,defaultValue = "") String userNameOrEmail ) {
-            String searchValue  = "%" + userNameOrEmail + "%";
-        return ResponseEntity.ok(userRepository.findByUsernameLikeAndEmailLike(searchValue, searchValue));
+       UserResponses user =  userService.getByEmailOrUsername(userNameOrEmail);
+       Data data = Data.builder()
+                .status(Objects.isNull(user) ?  HttpStatus.BAD_REQUEST.value() :  HttpStatus.OK.value())
+                .isSuccess(Objects.isNull(user) ? false : true)
+                .results(user)
+                .build();
+
+       return ResponseEntity.ok(DataResponse.builder().data(data).build());
     }
 
     @Operation(description = "Get User list")
@@ -55,7 +61,7 @@ public class UserController {
             @RequestParam(required = false, defaultValue = "10") Integer size,
             @RequestParam(required = false, defaultValue = "REQUEST_DATETIME") SortByUser sortBy,
             @RequestParam(required = false, defaultValue = "DESC") Sort.Direction orderBy,
-            @RequestParam(required = false) RoleEnums role,
+            @RequestParam(required = false, defaultValue = "USER") RoleEnums role,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fromCreateDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date toCreateDate
     ) {

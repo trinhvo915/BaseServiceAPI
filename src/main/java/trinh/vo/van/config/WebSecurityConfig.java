@@ -51,7 +51,7 @@ public class WebSecurityConfig {
         // Enable CORS and disable CSRF
         httpSecurity = httpSecurity.csrf().disable()
                 .exceptionHandling()
-//                .authenticationEntryPoint(unauthorizedHandler)
+                .authenticationEntryPoint(unauthorizedHandler)
                 .and();
 
         // Set session management to stateless

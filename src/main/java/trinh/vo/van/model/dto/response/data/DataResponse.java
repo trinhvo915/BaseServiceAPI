@@ -8,8 +8,5 @@ import lombok.*;
 @Getter
 @Builder
 public class DataResponse {
-
-    private Boolean success;
-
     private Data data;
 }

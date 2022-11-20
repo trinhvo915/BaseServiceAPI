@@ -25,7 +25,7 @@ import java.util.Set;
 public class User extends AuditedEntity {
 
     @Column(nullable = false)
-    private String username;
+    private String userName;
 
     @Column(nullable = false)
     private String password;
